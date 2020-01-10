@@ -1,0 +1,2 @@
+include ':example', ':googleclusterization'
+rootProject.name='Google Maps Clusterization'
