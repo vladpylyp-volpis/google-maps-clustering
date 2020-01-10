@@ -1,6 +1,4 @@
-package net.sharewire.googlemapsclustering;
-
-import android.support.annotation.NonNull;
+package main.net.sharewire.googlemapsclustering;
 
 import java.util.List;
 

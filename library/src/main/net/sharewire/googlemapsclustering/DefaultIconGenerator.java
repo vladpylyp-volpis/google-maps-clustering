@@ -1,4 +1,4 @@
-package net.sharewire.googlemapsclustering;
+package main.net.sharewire.googlemapsclustering;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -16,7 +16,7 @@ import android.widget.TextView;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
-import static net.sharewire.googlemapsclustering.Preconditions.checkNotNull;
+import static main.net.sharewire.googlemapsclustering.Preconditions.checkNotNull;
 
 /**
  * The implementation of {@link IconGenerator} that generates icons with the default style

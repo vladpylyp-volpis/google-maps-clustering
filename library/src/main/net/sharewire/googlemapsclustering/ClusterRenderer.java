@@ -1,4 +1,4 @@
-package net.sharewire.googlemapsclustering;
+package main.net.sharewire.googlemapsclustering;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -16,12 +16,11 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.sharewire.googlemapsclustering.Preconditions.checkNotNull;
+import static main.net.sharewire.googlemapsclustering.Preconditions.checkNotNull;
 
 class ClusterRenderer<T extends ClusterItem> implements GoogleMap.OnMarkerClickListener {
 

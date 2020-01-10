@@ -1,4 +1,4 @@
-package net.sharewire.googlemapsclustering;
+package main.net.sharewire.googlemapsclustering;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import static net.sharewire.googlemapsclustering.Preconditions.checkArgument;
-import static net.sharewire.googlemapsclustering.Preconditions.checkNotNull;
+import static main.net.sharewire.googlemapsclustering.Preconditions.checkArgument;
+import static main.net.sharewire.googlemapsclustering.Preconditions.checkNotNull;
 
 /**
  * Groups multiple items on a map into clusters based on the current zoom level.
