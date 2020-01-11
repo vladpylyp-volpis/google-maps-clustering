@@ -36,40 +36,13 @@ public class ClusterManager<T extends ClusterItem> implements GoogleMap.OnCamera
 
     private final ClusterRenderer<T> mRenderer;
 
-    private final Executor mExecutor = Executors.newSingleThreadExecutor();
+    private final Executor mExecutor = Executors.newCachedThreadPool();
 
     private AsyncTask mQuadTreeTask;
 
     private AsyncTask mClusterTask;
 
     private int mMinClusterSize = DEFAULT_MIN_CLUSTER_SIZE;
-
-    /**
-     * Defines signatures for methods that are called when a cluster or a cluster item is clicked.
-     *
-     * @param <T> the type of an item managed by {@link ClusterManager}.
-     */
-    public interface Callbacks<T extends ClusterItem> {
-        /**
-         * Called when a marker representing a cluster has been clicked.
-         *
-         * @param cluster the cluster that has been clicked
-         * @return <code>true</code> if the listener has consumed the event (i.e., the default behavior should not occur);
-         * <code>false</code> otherwise (i.e., the default behavior should occur). The default behavior is for the camera
-         * to move to the marker and an info window to appear.
-         */
-        boolean onClusterClick(@NonNull Cluster<T> cluster);
-
-        /**
-         * Called when a marker representing a cluster item has been clicked.
-         *
-         * @param clusterItem the cluster item that has been clicked
-         * @return <code>true</code> if the listener has consumed the event (i.e., the default behavior should not occur);
-         * <code>false</code> otherwise (i.e., the default behavior should occur). The default behavior is for the camera
-         * to move to the marker and an info window to appear.
-         */
-        boolean onClusterItemClick(@NonNull T clusterItem);
-    }
 
     /**
      * Creates a new cluster manager using the default icon generator.
@@ -221,6 +194,33 @@ public class ClusterManager<T extends ClusterItem> implements GoogleMap.OnCamera
                 }
             }
         }
+    }
+
+    /**
+     * Defines signatures for methods that are called when a cluster or a cluster item is clicked.
+     *
+     * @param <T> the type of an item managed by {@link ClusterManager}.
+     */
+    public interface Callbacks<T extends ClusterItem> {
+        /**
+         * Called when a marker representing a cluster has been clicked.
+         *
+         * @param cluster the cluster that has been clicked
+         * @return <code>true</code> if the listener has consumed the event (i.e., the default behavior should not occur);
+         * <code>false</code> otherwise (i.e., the default behavior should occur). The default behavior is for the camera
+         * to move to the marker and an info window to appear.
+         */
+        boolean onClusterClick(@NonNull Cluster<T> cluster);
+
+        /**
+         * Called when a marker representing a cluster item has been clicked.
+         *
+         * @param clusterItem the cluster item that has been clicked
+         * @return <code>true</code> if the listener has consumed the event (i.e., the default behavior should not occur);
+         * <code>false</code> otherwise (i.e., the default behavior should occur). The default behavior is for the camera
+         * to move to the marker and an info window to appear.
+         */
+        boolean onClusterItemClick(@NonNull T clusterItem);
     }
 
     private class QuadTreeTask extends AsyncTask<Void, Void, Void> {

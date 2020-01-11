@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 
-
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
@@ -92,8 +91,9 @@ class ClusterRenderer<T extends ClusterItem> implements GoogleMap.OnMarkerClickL
                 clustersToRemove.add(existingCluster);
             } else {
                 Cluster<T> clusterWithNewData = clusters.get(indexOfExistingCluster);
-                boolean itemsAreEqual = existingCluster.getItems().containsAll(clusterWithNewData.getItems());
-                if(!itemsAreEqual) {
+                boolean itemsAreEqual = Preconditions.checkListsEqual(existingCluster.getItems(), clusterWithNewData.getItems()) || existingCluster.getItems().containsAll(clusterWithNewData.getItems());
+
+                if (!itemsAreEqual) {
                     clustersToRemove.add(existingCluster);
                     clustersToAdd.add(clusterWithNewData);
                 }
