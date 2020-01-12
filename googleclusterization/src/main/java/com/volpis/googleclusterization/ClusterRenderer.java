@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.animation.TypeEvaluator;
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
@@ -23,6 +24,8 @@ import java.util.Map;
 import static com.volpis.googleclusterization.Preconditions.checkNotNull;
 
 class ClusterRenderer<T extends ClusterItem> implements GoogleMap.OnMarkerClickListener {
+
+    private static final String TAG = ClusterRenderer.class.getName();
 
     private static final int BACKGROUND_MARKER_Z_INDEX = 0;
 
@@ -76,27 +79,21 @@ class ClusterRenderer<T extends ClusterItem> implements GoogleMap.OnMarkerClickL
     void render(@NonNull List<Cluster<T>> clusters) {
         List<Cluster<T>> clustersToAdd = new ArrayList<>();
         List<Cluster<T>> clustersToRemove = new ArrayList<>();
+        List<Cluster<T>> clustersToUpdate = new ArrayList<>();
 
         for (Cluster<T> cluster : clusters) {
-            if (!mMarkers.containsKey(cluster)) {
+            if (mMarkers.containsKey(cluster)) {
+                // clustersToUpdate.add(cluster);
+                clustersToRemove.add(cluster);
+            } /*else {
                 clustersToAdd.add(cluster);
-            }
+            }*/
+            clustersToAdd.add(cluster);
         }
 
-        for (Cluster<T> existingCluster : mMarkers.keySet()) {
-            int indexOfExistingCluster = clusters.indexOf(existingCluster);
-            boolean newClustersContainsExistingCluster = indexOfExistingCluster >= 0;
-
-            if (!newClustersContainsExistingCluster) {
-                clustersToRemove.add(existingCluster);
-            } else {
-                Cluster<T> clusterWithNewData = clusters.get(indexOfExistingCluster);
-                boolean itemsAreEqual = Preconditions.checkListsEqual(existingCluster.getItems(), clusterWithNewData.getItems()) || existingCluster.getItems().containsAll(clusterWithNewData.getItems());
-
-                if (!itemsAreEqual) {
-                    clustersToRemove.add(existingCluster);
-                    clustersToAdd.add(clusterWithNewData);
-                }
+        for (Cluster<T> cluster : mMarkers.keySet()) {
+            if (!clusters.contains(cluster)) {
+                clustersToRemove.add(cluster);
             }
         }
 
@@ -105,7 +102,56 @@ class ClusterRenderer<T extends ClusterItem> implements GoogleMap.OnMarkerClickL
 
         // Remove the old clusters.
         for (Cluster<T> clusterToRemove : clustersToRemove) {
-            Marker markerToRemove = mMarkers.get(clusterToRemove);
+            removeCluster(clusterToRemove);
+        }
+
+        // Add the new clusters.
+        for (Cluster<T> clusterToAdd : clustersToAdd) {
+            addCluster(clusterToAdd, clustersToRemove);
+        }
+
+        for (Cluster<T> clusterToUpdate : clustersToUpdate) {
+            updateCluster(clusterToUpdate);
+        }
+
+    }
+
+    private void updateCluster(Cluster<T> clusterToUpdate) {
+        Marker markerToUpdate = mMarkers.get(clusterToUpdate);
+        if (markerToUpdate != null) {
+            markerToUpdate.remove();
+            mMarkers.remove(clusterToUpdate);
+        }
+        MarkerOptions markerOptionsToUpdate = getMarkerOptions(clusterToUpdate);
+        Marker markerToAdd = mGoogleMap.addMarker(markerOptionsToUpdate);
+        markerToAdd.setTag(clusterToUpdate);
+        mMarkers.put(clusterToUpdate, markerToAdd);
+    }
+
+    private void addCluster(Cluster<T> clusterToAdd, List<Cluster<T>> clustersToRemove) {
+        Marker markerToAdd;
+
+        MarkerOptions markerOptionsToAdd = getMarkerOptions(clusterToAdd);
+
+        Cluster parentCluster = findParentCluster(clustersToRemove, clusterToAdd.getLatitude(),
+                clusterToAdd.getLongitude());
+        if (parentCluster != null) {
+            markerToAdd = mGoogleMap.addMarker(markerOptionsToAdd);
+            animateMarkerToLocation(markerToAdd,
+                    new LatLng(clusterToAdd.getLatitude(), clusterToAdd.getLongitude()), false);
+        } else {
+            markerOptionsToAdd.alpha(0.0F);
+            markerToAdd = mGoogleMap.addMarker(markerOptionsToAdd);
+            animateMarkerAppearance(markerToAdd);
+        }
+        markerToAdd.setTag(clusterToAdd);
+
+        mMarkers.put(clusterToAdd, markerToAdd);
+    }
+
+    private void removeCluster(Cluster<T> clusterToRemove) {
+        Marker markerToRemove = mMarkers.get(clusterToRemove);
+        if (markerToRemove != null) {
             markerToRemove.setZIndex(BACKGROUND_MARKER_Z_INDEX);
 
             Cluster<T> parentCluster = findParentCluster(mClusters, clusterToRemove.getLatitude(),
@@ -119,40 +165,19 @@ class ClusterRenderer<T extends ClusterItem> implements GoogleMap.OnMarkerClickL
 
             mMarkers.remove(clusterToRemove);
         }
+    }
 
-        // Add the new clusters.
-        for (Cluster<T> clusterToAdd : clustersToAdd) {
-            Marker markerToAdd;
+    private MarkerOptions getMarkerOptions(Cluster<T> cluster) {
+        BitmapDescriptor markerIcon = getMarkerIcon(cluster);
+        String markerTitle = getMarkerTitle(cluster);
+        String markerSnippet = getMarkerSnippet(cluster);
 
-            BitmapDescriptor markerIcon = getMarkerIcon(clusterToAdd);
-            String markerTitle = getMarkerTitle(clusterToAdd);
-            String markerSnippet = getMarkerSnippet(clusterToAdd);
-
-            Cluster parentCluster = findParentCluster(clustersToRemove, clusterToAdd.getLatitude(),
-                    clusterToAdd.getLongitude());
-            if (parentCluster != null) {
-                markerToAdd = mGoogleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(parentCluster.getLatitude(), parentCluster.getLongitude()))
-                        .icon(markerIcon)
-                        .title(markerTitle)
-                        .snippet(markerSnippet)
-                        .zIndex(FOREGROUND_MARKER_Z_INDEX));
-                animateMarkerToLocation(markerToAdd,
-                        new LatLng(clusterToAdd.getLatitude(), clusterToAdd.getLongitude()), false);
-            } else {
-                markerToAdd = mGoogleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(clusterToAdd.getLatitude(), clusterToAdd.getLongitude()))
-                        .icon(markerIcon)
-                        .title(markerTitle)
-                        .snippet(markerSnippet)
-                        .alpha(0.0F)
-                        .zIndex(FOREGROUND_MARKER_Z_INDEX));
-                animateMarkerAppearance(markerToAdd);
-            }
-            markerToAdd.setTag(clusterToAdd);
-
-            mMarkers.put(clusterToAdd, markerToAdd);
-        }
+        return new MarkerOptions()
+                .position(new LatLng(cluster.getLatitude(), cluster.getLongitude()))
+                .icon(markerIcon)
+                .title(markerTitle)
+                .snippet(markerSnippet)
+                .zIndex(FOREGROUND_MARKER_Z_INDEX);
     }
 
     @NonNull

@@ -80,4 +80,13 @@ public class Cluster<T extends ClusterItem> {
         result = 31 * result + (int) (temp ^ (temp >>> 32));
         return result;
     }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "\nlatitude = " + latitude +
+                "\nlongitude = " + longitude +
+                "\nitems count = " + items.size() +
+                "\n";
+    }
 }

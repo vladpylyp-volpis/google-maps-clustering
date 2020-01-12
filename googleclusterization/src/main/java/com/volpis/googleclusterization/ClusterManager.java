@@ -36,7 +36,7 @@ public class ClusterManager<T extends ClusterItem> implements GoogleMap.OnCamera
 
     private final ClusterRenderer<T> mRenderer;
 
-    private final Executor mExecutor = Executors.newCachedThreadPool();
+    private final Executor mExecutor = Executors.newSingleThreadExecutor();
 
     private AsyncTask mQuadTreeTask;
 
