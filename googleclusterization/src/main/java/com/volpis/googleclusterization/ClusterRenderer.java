@@ -53,7 +53,6 @@ class ClusterRenderer<T extends ClusterItem> implements GoogleMap.OnMarkerClickL
         if (markerTag instanceof Cluster) {
             //noinspection unchecked
             Cluster<T> cluster = (Cluster<T>) marker.getTag();
-            //noinspection ConstantConditions
             List<T> clusterItems = cluster.getItems();
 
             if (mCallbacks != null) {
@@ -79,15 +78,11 @@ class ClusterRenderer<T extends ClusterItem> implements GoogleMap.OnMarkerClickL
     void render(@NonNull List<Cluster<T>> clusters) {
         List<Cluster<T>> clustersToAdd = new ArrayList<>();
         List<Cluster<T>> clustersToRemove = new ArrayList<>();
-        List<Cluster<T>> clustersToUpdate = new ArrayList<>();
 
         for (Cluster<T> cluster : clusters) {
             if (mMarkers.containsKey(cluster)) {
-                // clustersToUpdate.add(cluster);
                 clustersToRemove.add(cluster);
-            } /*else {
-                clustersToAdd.add(cluster);
-            }*/
+            }
             clustersToAdd.add(cluster);
         }
 
@@ -109,23 +104,6 @@ class ClusterRenderer<T extends ClusterItem> implements GoogleMap.OnMarkerClickL
         for (Cluster<T> clusterToAdd : clustersToAdd) {
             addCluster(clusterToAdd, clustersToRemove);
         }
-
-        for (Cluster<T> clusterToUpdate : clustersToUpdate) {
-            updateCluster(clusterToUpdate);
-        }
-
-    }
-
-    private void updateCluster(Cluster<T> clusterToUpdate) {
-        Marker markerToUpdate = mMarkers.get(clusterToUpdate);
-        if (markerToUpdate != null) {
-            markerToUpdate.remove();
-            mMarkers.remove(clusterToUpdate);
-        }
-        MarkerOptions markerOptionsToUpdate = getMarkerOptions(clusterToUpdate);
-        Marker markerToAdd = mGoogleMap.addMarker(markerOptionsToUpdate);
-        markerToAdd.setTag(clusterToUpdate);
-        mMarkers.put(clusterToUpdate, markerToAdd);
     }
 
     private void addCluster(Cluster<T> clusterToAdd, List<Cluster<T>> clustersToRemove) {
